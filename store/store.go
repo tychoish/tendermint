@@ -374,18 +374,28 @@ func (bs *BlockStore) SaveBlock(block *types.Block, blockParts *types.PartSet, s
 	}
 
 	// Save seen commit (seen +2/3 precommits for block)
-	// NOTE: we can delete this at a later height
 	pbsc := seenCommit.ToProto()
 	seenCommitBytes := mustEncode(pbsc)
 	if err := bs.db.Set(calcSeenCommitKey(height), seenCommitBytes); err != nil {
 		panic(err)
 	}
 
+<<<<<<< HEAD
 	// Done!
 	bs.mtx.Lock()
 	bs.height = height
 	if bs.base == 0 {
 		bs.base = height
+=======
+	// remove the previous seen commit that we have just replaced with the
+	// canonical commit
+	if err := batch.Delete(seenCommitKey(height - 1)); err != nil {
+		panic(err)
+	}
+
+	if err := batch.WriteSync(); err != nil {
+		panic(err)
+>>>>>>> 1c314c830... blockstore: save only the last seen commit (#6212)
 	}
 	bs.mtx.Unlock()
 
